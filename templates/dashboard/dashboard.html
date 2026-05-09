@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Smart City{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="section-label">Monitoring</p>
+        <h1>Dashboard</h1>
+    </div>
+    <div class="button-row">
+        <a class="btn btn-outline-dark" href="{% url 'dashboard:statistics' %}">Statistics</a>
+        <a class="btn btn-dark" href="{% url 'dashboard:reports' %}">Reports</a>
+    </div>
+</div>
+
+<div class="metric-grid">
+    <div class="metric-card">
+        <span>Total incidents</span>
+        <strong>{{ total_incidents }}</strong>
+    </div>
+    <div class="metric-card">
+        <span>Resolved</span>
+        <strong>{{ resolved_incidents }}</strong>
+    </div>
+    <div class="metric-card">
+        <span>Pending</span>
+        <strong>{{ pending_incidents }}</strong>
+    </div>
+    <div class="metric-card">
+        <span>High priority</span>
+        <strong>{{ high_priority_incidents }}</strong>
+    </div>
+    <div class="metric-card">
+        <span>Average rating</span>
+        <strong>{{ average_rating|floatformat:1|default:"-" }}</strong>
+    </div>
+</div>
+
+<div class="split-grid mt-4">
+    <section class="content-panel">
+        <h2>Status</h2>
+        <table class="table mb-0">
+            <tbody>
+                {% for row in status_rows %}
+                    <tr>
+                        <td>{{ row.status }}</td>
+                        <td class="text-end">{{ row.total }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td class="text-muted">No data</td><td></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    <section class="content-panel">
+        <h2>Priority</h2>
+        <table class="table mb-0">
+            <tbody>
+                {% for row in priority_rows %}
+                    <tr>
+                        <td>{{ row.priority }}</td>
+                        <td class="text-end">{{ row.total }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td class="text-muted">No data</td><td></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

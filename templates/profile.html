@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Profile | Smart City{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="section-label">Account</p>
+        <h1>Profile</h1>
+    </div>
+</div>
+
+<div class="content-panel">
+    <dl class="row mb-0">
+        <dt class="col-sm-3">Full name</dt>
+        <dd class="col-sm-9">{{ user.full_name }}</dd>
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">{{ user.email }}</dd>
+        <dt class="col-sm-3">Phone</dt>
+        <dd class="col-sm-9">{{ user.phone|default:"-" }}</dd>
+        <dt class="col-sm-3">Role</dt>
+        <dd class="col-sm-9"><span class="badge text-bg-secondary">{{ user.get_role_display }}</span></dd>
+    </dl>
+</div>
+{% endblock %}

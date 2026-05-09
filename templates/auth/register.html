@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Register | Smart City{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+    <div class="auth-panel">
+        <h1>Register</h1>
+        <p class="text-muted">Fuqarolar incident yaratish va holatini kuzatish uchun ro'yxatdan o'tadi.</p>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="form-text text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <button class="btn btn-dark w-100" type="submit">Create account</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

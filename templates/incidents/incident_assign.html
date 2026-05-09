@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Incident | Smart City{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="section-label">Operator action</p>
+        <h1>Assign incident</h1>
+    </div>
+</div>
+
+<div class="content-panel form-panel">
+    <form method="post">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        {% for field in form %}
+            <div class="mb-3">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                    <div class="form-text text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <button class="btn btn-dark" type="submit">Save assignment</button>
+    </form>
+</div>
+{% endblock %}

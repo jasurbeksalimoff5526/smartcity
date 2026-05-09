@@ -1,0 +1,74 @@
+{% load static %}
+<!doctype html>
+<html lang="uz">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Smart City{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-semibold" href="{% url 'incidents:incident_list' %}">Smart City IMS</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'incidents:incident_list' %}">Incidents</a>
+                        </li>
+                        {% if user.role == "OPERATOR" or user.role == "ADMIN" or user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'dashboard:dashboard' %}">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'dashboard:reports' %}">Reports</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'feedback:feedback_list' %}">Feedback</a>
+                            </li>
+                        {% endif %}
+                        {% if user.role == "ADMIN" or user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'incidents:category_list' %}">Categories</a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    {% if user.is_authenticated %}
+                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'users:profile' %}">{{ user.full_name|default:user.email }}</a>
+                        <form method="post" action="{% url 'users:logout' %}">
+                            {% csrf_token %}
+                            <button class="btn btn-dark btn-sm" type="submit">Logout</button>
+                        </form>
+                    {% else %}
+                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'users:login' %}">Login</a>
+                        <a class="btn btn-dark btn-sm" href="{% url 'users:register' %}">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid px-4 py-4">
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

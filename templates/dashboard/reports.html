@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Reports | Smart City{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="section-label">Reports</p>
+        <h1>Problem areas</h1>
+    </div>
+</div>
+
+<div class="split-grid">
+    <section class="content-panel">
+        <h2>Most problematic areas</h2>
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Address</th>
+                    <th class="text-end">Incidents</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in problem_locations %}
+                    <tr>
+                        <td>{{ row.address }}</td>
+                        <td class="text-end">{{ row.total }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="2" class="text-muted">No location data.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="content-panel">
+        <h2>Problem categories</h2>
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th class="text-end">Incidents</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in problem_categories %}
+                    <tr>
+                        <td>{{ category.name }}</td>
+                        <td class="text-end">{{ category.total }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="2" class="text-muted">No category data.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

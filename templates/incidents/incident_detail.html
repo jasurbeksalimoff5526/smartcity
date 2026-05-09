@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{{ incident.title }} | Smart City{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="section-label">Incident #{{ incident.pk }}</p>
+        <h1>{{ incident.title }}</h1>
+    </div>
+    <div class="button-row">
+        {% if user.role == "CITIZEN" and incident.status == "NEW" %}
+            <a class="btn btn-outline-dark" href="{% url 'incidents:incident_update' incident.pk %}">Edit</a>
+        {% endif %}
+        {% if user.role == "OPERATOR" or user.role == "ADMIN" or user.is_superuser %}
+            <a class="btn btn-outline-dark" href="{% url 'incidents:incident_assign' incident.pk %}">Assign</a>
+            <a class="btn btn-dark" href="{% url 'incidents:incident_resolve' incident.pk %}">Resolution</a>
+        {% endif %}
+        {% if user.role == "TECHNICIAN" and incident.technician_id == user.id %}
+            <a class="btn btn-dark" href="{% url 'incidents:incident_resolve' incident.pk %}">Resolve</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="detail-grid">
+    <section class="content-panel">
+        <div class="d-flex gap-2 mb-3">
+            <span class="status-pill status-{{ incident.status|lower }}">{{ incident.get_status_display }}</span>
+            <span class="badge text-bg-light border">{{ incident.get_priority_display }}</span>
+            <span class="badge text-bg-light border">{{ incident.category.name }}</span>
+        </div>
+        <p>{{ incident.description|linebreaks }}</p>
+        {% if incident.image %}
+            <img class="incident-image" src="{{ incident.image.url }}" alt="{{ incident.title }}">
+        {% endif %}
+        {% if incident.resolution_note %}
+            <hr>
+            <h2>Resolution</h2>
+            <p>{{ incident.resolution_note|linebreaks }}</p>
+        {% endif %}
+    </section>
+
+    <aside class="content-panel">
+        <h2>Details</h2>
+        <dl class="meta-list">
+            <dt>Address</dt>
+            <dd>{{ incident.address }}</dd>
+            <dt>Latitude</dt>
+            <dd>{{ incident.latitude|default:"-" }}</dd>
+            <dt>Longitude</dt>
+            <dd>{{ incident.longitude|default:"-" }}</dd>
+            <dt>Citizen</dt>
+            <dd>{{ incident.citizen.full_name }}</dd>
+            <dt>Technician</dt>
+            <dd>{{ incident.technician.full_name|default:"Not assigned" }}</dd>
+            <dt>Created</dt>
+            <dd>{{ incident.created_at|date:"Y-m-d H:i" }}</dd>
+            <dt>Updated</dt>
+            <dd>{{ incident.updated_at|date:"Y-m-d H:i" }}</dd>
+        </dl>
+
+        {% if user.role == "CITIZEN" and incident.citizen_id == user.id and incident.status == "RESOLVED" %}
+            <a class="btn btn-dark w-100 mb-2" href="{% url 'feedback:feedback_create' incident.pk %}">Leave feedback</a>
+            <form method="post" action="{% url 'incidents:incident_close' incident.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-outline-dark w-100" type="submit">Close incident</button>
+            </form>
+        {% endif %}
+        {% if user.role == "CITIZEN" and incident.citizen_id == user.id and incident.status == "CLOSED" %}
+            <a class="btn btn-outline-dark w-100" href="{% url 'feedback:feedback_create' incident.pk %}">View or edit feedback</a>
+        {% endif %}
+    </aside>
+</div>
+{% endblock %}
