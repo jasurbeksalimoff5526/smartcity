@@ -20,8 +20,10 @@ from .models import Category, Incident
 
 
 def can_view_incident(user, incident):
-    if user.is_superuser or user.role in {User.Role.ADMIN, User.Role.OPERATOR}:
+    if user.is_superuser or user.role == User.Role.ADMIN:
         return True
+    if user.role == User.Role.OPERATOR:
+        return user.categories.filter(pk=incident.category_id).exists()
     if user.role == User.Role.CITIZEN:
         return incident.citizen_id == user.id
     if user.role == User.Role.TECHNICIAN:
@@ -46,6 +48,8 @@ class IncidentListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(citizen=user)
         elif user.role == User.Role.TECHNICIAN:
             queryset = queryset.filter(technician=user)
+        elif user.role == User.Role.OPERATOR and not user.is_superuser:
+            queryset = queryset.filter(category__in=user.categories.all())
 
         status = self.request.GET.get("status")
         category = self.request.GET.get("category")
@@ -126,6 +130,15 @@ class IncidentAssignView(LoginRequiredMixin, RoleRequiredMixin, UpdateView):
     model = Incident
     form_class = IncidentAssignmentForm
     template_name = "incidents/incident_assign.html"
+
+    def get_queryset(self):
+        queryset = Incident.objects.select_related("category")
+        user = self.request.user
+
+        if user.is_superuser or user.role == User.Role.ADMIN:
+            return queryset
+
+        return queryset.filter(category__in=user.categories.all())
 
     def form_valid(self, form):
         incident = form.save(commit=False)

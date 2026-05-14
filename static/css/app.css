@@ -135,6 +135,16 @@ h2 {
     width: 100%;
 }
 
+.location-capture {
+    border-left: 3px solid var(--accent);
+    padding-left: .9rem;
+}
+
+.location-status {
+    color: var(--text-muted);
+    font-size: .95rem;
+}
+
 .status-pill {
     border-radius: 999px;
     display: inline-flex;

@@ -1,0 +1,121 @@
+<form method="post" enctype="multipart/form-data" data-incident-form>
+    {% csrf_token %}
+    {% for hidden in form.hidden_fields %}
+        {{ hidden }}
+    {% endfor %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+    {% for field in form.visible_fields %}
+        {% if field.name == "address" %}
+            <div class="mb-3 location-capture">
+                <label class="form-label">GPS location</label>
+                <div class="location-status" data-location-status>GPS location olinmagan.</div>
+                {% for hidden in form.hidden_fields %}
+                    {% if hidden.name == "latitude" or hidden.name == "longitude" %}
+                        {% for error in hidden.errors %}
+                            <div class="form-text text-danger">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+                <div class="form-text text-danger d-none" data-location-error></div>
+                <button class="btn btn-outline-dark mt-2" type="button" data-location-button>
+                    GPS location olish
+                </button>
+            </div>
+        {% endif %}
+        <div class="mb-3">
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}
+                <div class="form-text text-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+    <button class="btn btn-dark" type="submit">{{ submit_label }}</button>
+</form>
+
+<script>
+    (() => {
+        const form = document.querySelector("[data-incident-form]");
+        if (!form) {
+            return;
+        }
+
+        const latitudeInput = form.querySelector("input[name='latitude']");
+        const longitudeInput = form.querySelector("input[name='longitude']");
+        const button = form.querySelector("[data-location-button]");
+        const status = form.querySelector("[data-location-status]");
+        const errorBox = form.querySelector("[data-location-error]");
+
+        if (!latitudeInput || !longitudeInput || !button || !status || !errorBox) {
+            return;
+        }
+
+        const hasLocation = () => latitudeInput.value && longitudeInput.value;
+
+        const setStatus = (message, isError = false) => {
+            status.textContent = message;
+            errorBox.classList.toggle("d-none", !isError);
+            errorBox.textContent = isError ? message : "";
+        };
+
+        const refreshStatus = () => {
+            if (hasLocation()) {
+                setStatus(`GPS: ${latitudeInput.value}, ${longitudeInput.value}`);
+                button.textContent = "GPS locationni yangilash";
+            }
+        };
+
+        refreshStatus();
+
+        button.addEventListener("click", () => {
+            if (!("geolocation" in navigator)) {
+                setStatus("Brauzer GPS locationni qo'llab-quvvatlamaydi.", true);
+                return;
+            }
+
+            const previousText = button.textContent;
+            button.disabled = true;
+            button.textContent = "GPS olinmoqda...";
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latitude = position.coords.latitude.toFixed(6);
+                    const longitude = position.coords.longitude.toFixed(6);
+
+                    latitudeInput.value = latitude;
+                    longitudeInput.value = longitude;
+                    setStatus(`GPS: ${latitude}, ${longitude}`);
+
+                    button.disabled = false;
+                    button.textContent = "GPS locationni yangilash";
+                },
+                (error) => {
+                    const messages = {
+                        1: "GPS ruxsati berilmadi.",
+                        2: "GPS location aniqlanmadi.",
+                        3: "GPS so'rovi vaqti tugadi.",
+                    };
+
+                    setStatus(messages[error.code] || "GPS location olinmadi.", true);
+                    button.disabled = false;
+                    button.textContent = previousText;
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 10000,
+                },
+            );
+        });
+
+        form.addEventListener("submit", (event) => {
+            if (!hasLocation()) {
+                event.preventDefault();
+                setStatus("Incident uchun GPS locationni oling.", true);
+                button.focus();
+            }
+        });
+    })();
+</script>

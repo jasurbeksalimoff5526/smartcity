@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 
 from users.models import User
 
@@ -36,13 +37,41 @@ class IncidentCreateForm(forms.ModelForm):
         )
         widgets = {
             "description": forms.Textarea(attrs={"rows": 4}),
-            "latitude": forms.NumberInput(attrs={"step": "0.000001"}),
-            "longitude": forms.NumberInput(attrs={"step": "0.000001"}),
+            "latitude": forms.HiddenInput(),
+            "longitude": forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["latitude"].required = True
+        self.fields["longitude"].required = True
         apply_bootstrap(self)
+
+    def clean_latitude(self):
+        latitude = self.cleaned_data.get("latitude")
+
+        if latitude is None:
+            raise ValidationError(
+                "Brauzer GPS location tugmasi orqali joylashuvni oling."
+            )
+
+        if latitude < -90 or latitude > 90:
+            raise ValidationError("Latitude qiymati noto'g'ri.")
+
+        return latitude
+
+    def clean_longitude(self):
+        longitude = self.cleaned_data.get("longitude")
+
+        if longitude is None:
+            raise ValidationError(
+                "Brauzer GPS location tugmasi orqali joylashuvni oling."
+            )
+
+        if longitude < -180 or longitude > 180:
+            raise ValidationError("Longitude qiymati noto'g'ri.")
+
+        return longitude
 
 
 class IncidentAssignmentForm(forms.ModelForm):
@@ -58,7 +87,16 @@ class IncidentAssignmentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["technician"].queryset = User.objects.filter(role=User.Role.TECHNICIAN)
+        technician_queryset = User.objects.filter(role=User.Role.TECHNICIAN)
+
+        if self.instance and self.instance.category_id:
+            technician_queryset = technician_queryset.filter(
+                categories=self.instance.category
+            )
+        else:
+            technician_queryset = technician_queryset.none()
+
+        self.fields["technician"].queryset = technician_queryset.distinct()
         apply_bootstrap(self)
 
 
